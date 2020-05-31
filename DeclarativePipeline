@@ -1,0 +1,50 @@
+pipeline
+{ agent any
+  stages
+  {
+    stage('continuous download')
+      {
+          steps
+        {
+          git credentialsId: '041d371e-31c7-4029-9063-77a21e6ee01c', url: 'https://github.com/poojachikara/firstgitlab.git' 
+        } 
+      }
+    stage('continuoud build')
+      {
+          steps
+        {
+          sh label: '', script: 'mvn package'
+        } 
+      }
+    stage('continuous deploy')
+      {
+          steps
+        {
+          sh label: '', script: 'scp /home/ubuntu/.jenkins/workspace/declarative_Pipeline/webapp/target/webapp.war ubuntu@172.31.34.68:/tmp/testfile.war'
+        } 
+      }
+    stage('continuous testing')
+      {
+          steps
+        {
+          git credentialsId: '041d371e-31c7-4029-9063-77a21e6ee01c', url: 'https://github.com/poojachikara/functionaltesting1.git'
+          sh label: '', script: 'java -jar /home/ubuntu/.jenkins/workspace/declarative_Pipeline/Downloads/FunctionalTesting/testing.jar'
+         
+        } 
+      }  
+  }      
+  post 
+  {
+     success
+     {
+      sh label: '', script: 'scp /home/ubuntu/.jenkins/workspace/declarative_Pipeline/webapp/target/webapp.war ubuntu@172.31.40.21:/tmp/Prodfile.war'  
+     }
+      failure
+     {
+            mail bcc: '', body: 'please check jenkins logs', cc: '', from: '', replyTo: '', subject: 'Jenkins job failed', to: 'poojachikara8@gmail.com'
+     }
+  }
+        
+        
+  
+}
